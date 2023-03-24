@@ -15,10 +15,15 @@ class AnnotationProvider
     {
         $annotationClasses = self::scanFile();
         $routes = Route::getRoutes();
-        $ignore_list = [];
+        $exist_list = [];
         foreach ($routes as $tmp_route) {
-            $ignore_list[$tmp_route->getPath()] = $tmp_route->getMethods();
+            $exist_list[$tmp_route->getPath()] = $tmp_route->getMethods();
         }
+        /**
+         * 1、读取类的注解，如：路径前缀，资源路由，中间件
+         * 2、读取方法注解，继承类注解的中间件，路径前缀
+         * 3、保存已定义路由到数组，如果遇到定义相同路由情况下，抛出异常且跳过当条定义
+         */
         foreach ($annotationClasses as $class_name) {
 
             $class = new ReflectionClass($class_name);
