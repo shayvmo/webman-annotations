@@ -7,7 +7,7 @@ namespace Shayvmo\WebmanAnnotations;
 use Doctrine\Common\Annotations\AnnotationReader;
 use ReflectionClass;
 use ReflectionMethod;
-use Shayvmo\WebmanAnnotations\Annotations\Controller;
+use Shayvmo\WebmanAnnotations\Annotations\RestController;
 use Shayvmo\WebmanAnnotations\Annotations\DeleteMapping;
 use Shayvmo\WebmanAnnotations\Annotations\GetMapping;
 use Shayvmo\WebmanAnnotations\Annotations\Middleware;
@@ -86,8 +86,8 @@ class AnnotationProvider
 
 
             $classPrefix = '';
-            /** @var Controller $classControllerAnnotation */
-            $classControllerAnnotation = $reader->getClassAnnotation($class, Controller::class);
+            /** @var RestController $classControllerAnnotation */
+            $classControllerAnnotation = $reader->getClassAnnotation($class, RestController::class);
             if ($classControllerAnnotation) {
                 $classPrefix = $classControllerAnnotation->getPrefix();
             }
@@ -101,7 +101,7 @@ class AnnotationProvider
 
             /** @var ResourceMapping $classResourceAnnotation */
             $classResourceAnnotation = $reader->getClassAnnotation($class, ResourceMapping::class);
-            if ($classControllerAnnotation) {
+            if ($classResourceAnnotation) {
                 $classPath = $classPrefix . $classResourceAnnotation->getPath();
                 $classMethods = $classResourceAnnotation->getMethods();
                 $classAllowMethods = $classResourceAnnotation->getAllowMethods();

@@ -11,6 +11,30 @@ composer require shayvmo/webman-annotations
 ```
 ## 使用
 
+### 配置文件
+
+```php
+<?php
+// config/plugin/shayvmo/webman-annotations/annotation.php
+return [
+    // 注解扫描路径, 只扫描应用目录下已定义的文件夹，例如： app/admin/controller 及其下级目录
+    'include_paths' => [
+        'admin'
+    ],
+    // requestMapping 允许的请求method
+    'allow_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
+    // 忽略解析的注解名称
+    'ignored' => [
+        "after", "afterClass", "backupGlobals", "backupStaticAttributes", "before", "beforeClass", "codeCoverageIgnore*",
+        "covers", "coversDefaultClass", "coversNothing", "dataProvider", "depends", "doesNotPerformAssertions",
+        "expectedException", "expectedExceptionCode", "expectedExceptionMessage", "expectedExceptionMessageRegExp", "group",
+        "large", "medium", "preserveGlobalState", "requires", "runTestsInSeparateProcesses", "runInSeparateProcess", "small",
+        "test", "testdox", "testWith", "ticket", "uses" , "datetime",
+    ]
+];
+
+```
+
 ### 一、中间件注解
 
 <span style="color: red">注：方法会继承类定义的中间件。</span>
@@ -38,20 +62,20 @@ use App\third\middleware\SignatureCheckA;
 
 ### 二、类注解
 
-类注解有控制器注解` @Controller `和资源路由` @ResourceMapping `。
+类注解有控制器注解` @RestController `和资源路由` @ResourceMapping `。
 资源路由和` webman `框架原有的资源路由一致。参考：[webman路由](https://www.workerman.net/doc/webman/route.html)
 
 #### 控制器注解
 
 ```
-use Shayvmo\WebmanAnnotations\Annotations\Controller;
+use Shayvmo\WebmanAnnotations\Annotations\RestController;
 ```
 
-` @Controller `控制器注解，只有一个参数` prefix `,表示整个控制器的路由路径前缀，方法路由路径都会拼接该前缀。
+` @RestController `控制器注解，只有一个参数` prefix `,表示整个控制器的路由路径前缀，方法路由路径都会拼接该前缀。
 传参可以省略键名。
 
-- `@Controller("/a")`
-- `@Controller(prefix="/a")`
+- `@RestController("/a")`
+- `@RestController(prefix="/a")`
 
 
 #### 资源路由注解
@@ -115,7 +139,7 @@ declare (strict_types=1);
 
 namespace App\third\controller;
 
-use Shayvmo\WebmanAnnotations\Annotations\Controller;
+use Shayvmo\WebmanAnnotations\Annotations\RestController;
 use Shayvmo\WebmanAnnotations\Annotations\DeleteMapping;
 use Shayvmo\WebmanAnnotations\Annotations\GetMapping;
 use Shayvmo\WebmanAnnotations\Annotations\Middleware;
@@ -130,7 +154,7 @@ use support\Request;
 use Tinywan\LimitTraffic\Middleware\LimitTrafficMiddleware;
 
 /**
- * @Controller("/test")
+ * @RestController("/test")
  * @ResourceMapping("/dddd", allow_methods={"index", "show"})
  * @Middleware(SignatureCheck::class)
  */
