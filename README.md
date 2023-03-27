@@ -11,15 +11,6 @@ composer require shayvmo/webman-annotations
 ```
 ## 使用
 
-```
-// 方法注解
-use Shayvmo\WebmanAnnotations\Annotations\RequestMapping;
-use Shayvmo\WebmanAnnotations\Annotations\GetMapping;
-use Shayvmo\WebmanAnnotations\Annotations\PostMapping;
-use Shayvmo\WebmanAnnotations\Annotations\PutMapping;
-use Shayvmo\WebmanAnnotations\Annotations\DeleteMapping;
-```
-
 ### 一、中间件注解
 
 <span style="color: red">注：方法会继承类定义的中间件。</span>
@@ -28,11 +19,22 @@ use Shayvmo\WebmanAnnotations\Annotations\DeleteMapping;
 
 ```
 use Shayvmo\WebmanAnnotations\Annotations\Middleware;
+use App\third\middleware\SignatureCheckA;
+
+/**
+ * @Middleware(
+ *     \App\third\middleware\SignatureCheck::class,
+ * )
+ */
+ 
+/**
+ * @Middleware({
+ *   SignatureCheckA::class,
+ *   \App\third\middleware\SignatureCheck::class,
+ * })
+ */
+
 ```
-
-
-
-
 
 ### 二、类注解
 
@@ -94,6 +96,17 @@ use Shayvmo\WebmanAnnotations\Annotations\ResourceMapping;
 - `@PostMapping(path="/post")`
 - `@PutMapping(path="/put")`
 - `@DeleteMapping(path="/delete")`
+
+```
+// 方法注解
+use Shayvmo\WebmanAnnotations\Annotations\RequestMapping;
+use Shayvmo\WebmanAnnotations\Annotations\GetMapping;
+use Shayvmo\WebmanAnnotations\Annotations\PostMapping;
+use Shayvmo\WebmanAnnotations\Annotations\PutMapping;
+use Shayvmo\WebmanAnnotations\Annotations\DeleteMapping;
+```
+
+### 四、示例
 
 ```php
 <?php
