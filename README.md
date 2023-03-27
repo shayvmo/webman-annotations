@@ -12,10 +12,6 @@ composer require shayvmo/webman-annotations
 ## 使用
 
 ```
-
-
-
-
 // 方法注解
 use Shayvmo\WebmanAnnotations\Annotations\RequestMapping;
 use Shayvmo\WebmanAnnotations\Annotations\GetMapping;
