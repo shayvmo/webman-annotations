@@ -9,10 +9,22 @@ namespace Shayvmo\WebmanAnnotations\Annotations;
  */
 class Middleware
 {
+    public array $middlewares;
+
     public function __construct(...$value)
     {
-        echo "Middleware __construct ------------------------\n";
-        var_export($value);
-        echo " Middleware __construct end ---------------------------\n";
+        $middlewares = $value[0]['value'] ?? [];
+        if (is_string($middlewares)) {
+            $middlewares = [$middlewares];
+        }
+        $this->middlewares = $middlewares;
+    }
+
+    /**
+     * @return array|mixed
+     */
+    public function getMiddlewares()
+    {
+        return $this->middlewares;
     }
 }

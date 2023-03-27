@@ -9,10 +9,18 @@ namespace Shayvmo\WebmanAnnotations\Annotations;
  */
 class Controller
 {
+    public string $prefix;
+
     public function __construct(...$value)
     {
-        echo "Controller __construct ------------------------\n";
-        var_export($value);
-        echo " Controller __construct end ---------------------------\n";
+        $this->prefix = $value[0]['prefix'] ?? $value[0]['value'] ?? '';
+    }
+
+    /**
+     * @return mixed|string
+     */
+    public function getPrefix()
+    {
+        return $this->prefix;
     }
 }

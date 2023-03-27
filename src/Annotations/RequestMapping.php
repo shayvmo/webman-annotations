@@ -7,44 +7,32 @@ namespace Shayvmo\WebmanAnnotations\Annotations;
 /**
  * @Annotation
  */
-class RequestMapping
+class RequestMapping extends Mapping
 {
+    public $methods;
+
     public function __construct(...$value)
     {
-        echo "RequestMapping __construct ------------------------\n";
-        var_export($value);
-        echo " RequestMapping __construct end ---------------------------\n";
-//        $formattedValue = $this->formatParams($value);
-//        $this->path    = $formattedValue["path"];
-//        if (isset($formattedValue['methods'])) {
-//            if (is_string($formattedValue['methods'])) {
-//                // Explode a string to a array
-//                $this->methods = explode(',', mb_strtoupper(str_replace(' ', '', $formattedValue['methods'])  , 'UTF-8'));
-//            } else {
-//                $methods = [];
-//                foreach ($formattedValue['methods'] as $method) {
-//                    $methods[] = mb_strtoupper(str_replace(' ', '', $method) , 'UTF-8');
-//                }
-//                $this->methods = $methods;
-//            }
-//        }
+        $this->methods = [];
+        $this->path = $value[0]['path'] ?? '';
+        $tempMethods = $value[0]['methods'] ?? '';
+        if ($tempMethods) {
+            if (is_string($tempMethods)) {
+                $tempMethods = explode(',', $tempMethods);
+            }
+            array_walk($tempMethods, function (&$item) {
+                $item = strtoupper(trim($item));
+            });
+            $allow_methods = config("plugin.shayvmo.webman-annotations.annotation.allow_methods");
+            $allow_methods && $tempMethods = array_filter($tempMethods, function ($item) use ($allow_methods) {
+                return in_array($item, $allow_methods, true);
+            });
+            $this->methods = $tempMethods;
+        }
     }
 
-    /**
-     * @return array
-     * @datetime 2022/7/4 13:50
-     * @author zhulianyou
-     */
-    public function setMethods(): array
+    public function getMethods()
     {
-        $normalMethods = [];
-        foreach ($this->methods as $method)
-        {
-            if(in_array($method , $this->normal))
-            {
-                $normalMethods[] = $method;
-            }
-        }
-        return $normalMethods;
+        return $this->methods;
     }
 }

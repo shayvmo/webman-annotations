@@ -2,8 +2,7 @@
 
 > 使用了 doctrine/annotations 包来对代码内的注解进行解析。
 >
-> 您可以直接在控制器类任意方法定义@RequestMapping注解来完成一个路由的定义，如需使用路由中间件请定义该路由的注解方法@Middwares或@Middware
-> 注解并引入中间件命名空间即可
+> 您可以直接在控制器类或类方法定义注解，实现路由定义。
 
 ## 安装
 
@@ -11,68 +10,177 @@
 composer require shayvmo/webman-annotations
 ```
 ## 使用
-### 路由控制
-- GET
-- POST
-- PUT
-- DELETE
-```php
-use Sunsgne\Annotations\Mapping\RequestMapping;
-/**
- * 允许通过 GET 或 POST 方式请求
- * @RequestMapping(methods="GET , POST" , path="/api/json")
- * @param Request $request
- * @return Response
- */
-public function json(Request $request)
-{
-    return json(['code' => 0, 'msg' => 'ok']);
-}
-```
-### 路由中间件
-在通过注解定义路由时，您仅可通过注解的方式来定义中间件，对中间件的定义有两个注解，分别为：
-> 使用 @Middleware 注解时需 use  Sunsgne\Annotations\Mapping\Middleware; 命名空间；
 
-> 使用 @Middlewares 注解时需 use  Sunsgne\Annotations\Mapping\Middlewares; 命名空间；
-- @Middleware 注解为定义单个中间件时使用，在一个地方仅可定义一个该注解，不可重复定义
-- @Middlewares 注解为定义多个中间件时使用，在一个地方仅可定义一个该注解，然后通过在该注解内定义多个 @Middleware 注解实现多个中间件的定义
-  定义单个中间件：
-```php
-use Sunsgne\Annotations\Mapping\RequestMapping;
-use Sunsgne\Annotations\Mapping\Middleware;
-use Sunsgne\Annotations\Mapping\Middlewares;
-use app\middleware\App;
-use app\middleware\Log;
-/**
- * @RequestMapping(methods="GET" , path="/api/json")
- * @Middleware(App::class)
- * @param Request $request
- * @return Response
- */
-public function json(Request $request)
-{
-    return json(['code' => 0, 'msg' => 'ok']);
-}
 ```
 
-定义多个中间件：
+
+
+
+// 方法注解
+use Shayvmo\WebmanAnnotations\Annotations\RequestMapping;
+use Shayvmo\WebmanAnnotations\Annotations\GetMapping;
+use Shayvmo\WebmanAnnotations\Annotations\PostMapping;
+use Shayvmo\WebmanAnnotations\Annotations\PutMapping;
+use Shayvmo\WebmanAnnotations\Annotations\DeleteMapping;
+```
+
+### 一、中间件注解
+
+<span style="color: red">注：方法会继承类定义的中间件。</span>
+
+类和方法通用，参数中间件类名，单个中间件传入字符串，多个中间件传入字符串数组。
+
+```
+use Shayvmo\WebmanAnnotations\Annotations\Middleware;
+```
+
+
+
+
+
+### 二、类注解
+
+类注解有控制器注解` @Controller `和资源路由` @ResourceMapping `。
+资源路由和` webman `框架原有的资源路由一致。参考：[webman路由](https://www.workerman.net/doc/webman/route.html)
+
+#### 控制器注解
+
+```
+use Shayvmo\WebmanAnnotations\Annotations\Controller;
+```
+
+` @Controller `控制器注解，只有一个参数` prefix `,表示整个控制器的路由路径前缀，方法路由路径都会拼接该前缀。
+传参可以省略键名。
+
+- `@Controller("/a")`
+- `@Controller(prefix="/a")`
+
+
+#### 资源路由注解
+
+```
+use Shayvmo\WebmanAnnotations\Annotations\ResourceMapping;
+```
+
+` @ResourceMapping `资源路由注解，有` path ` 和 ` allow_methods `两个参数
+`path`表示资源路由的路径，`allow_methods`为指定的资源方法数组，不传指定资源方法时，使用全部资源方法
+`path`传参可以省略键名。
+
+- `@ResourceMapping(path="/dddd", allow_methods={"index", "show"})`
+- `@ResourceMapping("/dddd", allow_methods={"index", "show"})` 
+
+<span style="color: red">注：如果定义了资源路由，会自动忽略类同名方法的方法注解。</span>
+
+附：资源路由方法对照
+
+|请求方法|路径|类方法|
+|---|---|---|
+|GET|/test|index|
+|GET|/test/create|create|
+|POST|/test|store|
+|GET|/test/{id}|show|
+|GET|/test/{id}/edit|edit|
+|PUT|/test/{id}|update|
+|DELETE|/test/{id}|destroy|
+|PUT|/test/{id}/recovery|recovery|
+
+### 三、方法注解
+
+方法注解主要是`@RequestMapping` 以及 `@GetMapping`、`@PostMapping`、`@PutMapping`、`@DeleteMapping` 四个便捷注解。
+定义路由路径 `path` 和请求方法` methods `。两个参数均可以传入字符串或数组。
+例如`path`传入数组时，表示多个请求路由路径。`methods`传入数组时，表示多个请求方法。
+
+<span style="color: red">注：便捷注解传入路由路径`path`即可，可以省略键名`path`，无需传入`methods`</span>
+
+- `@RequestMapping(path={"/dddd", "/dddd1"}, methods={"get", "post"})`
+- `@GetMapping(path={"/get","/get1"})`
+- `@GetMapping({"/get","/get1"})`
+- `@PostMapping(path="/post")`
+- `@PutMapping(path="/put")`
+- `@DeleteMapping(path="/delete")`
+
 ```php
-use Sunsgne\Annotations\Mapping\RequestMapping;
-use Sunsgne\Annotations\Mapping\Middleware;
-use Sunsgne\Annotations\Mapping\Middlewares;
-use app\middleware\App;
-use app\middleware\Log;
+<?php
+
+declare (strict_types=1);
+
+namespace App\third\controller;
+
+use Shayvmo\WebmanAnnotations\Annotations\Controller;
+use Shayvmo\WebmanAnnotations\Annotations\DeleteMapping;
+use Shayvmo\WebmanAnnotations\Annotations\GetMapping;
+use Shayvmo\WebmanAnnotations\Annotations\Middleware;
+use Shayvmo\WebmanAnnotations\Annotations\PostMapping;
+use Shayvmo\WebmanAnnotations\Annotations\PutMapping;
+use Shayvmo\WebmanAnnotations\Annotations\RequestMapping;
+use Shayvmo\WebmanAnnotations\Annotations\ResourceMapping;
+
+use App\third\middleware\SignatureCheck;
+
+use support\Request;
+use Tinywan\LimitTraffic\Middleware\LimitTrafficMiddleware;
+
 /**
- * @RequestMapping(methods="GET" , path="/api/json")
- * @Middlewares({
- *     @Middleware(App::class),
- *     @Middleware(Log::class)
- * })
- * @param Request $request
- * @return Response
+ * @Controller("/test")
+ * @ResourceMapping("/dddd", allow_methods={"index", "show"})
+ * @Middleware(SignatureCheck::class)
  */
-public function json(Request $request)
+class ATest
 {
-    return json(['code' => 0, 'msg' => 'ok']);
+    public function index()
+    {
+        // 
+        return 'Test/index';
+    }
+
+    public function show(Request $request, $id)
+    {
+        return "Test/show $id";
+    }
+
+    /**
+     * @GetMapping("/test")
+     * @Middleware(SignatureCheck::class)
+     */
+    public function get()
+    {
+        return 'Test/get';
+    }
+
+    /**
+     * @RequestMapping(methods={"get", "post"}, path="/test1")
+     * @Middleware({
+     *     LimitTrafficMiddleware::class,
+     * })
+     */
+    public function test()
+    {
+        return 'Test/test';
+    }
+
+    /**
+     * @PostMapping("/post")
+     */
+    public function post()
+    {
+        return 'Test/post';
+    }
+
+    /**
+     * @PutMapping("/put")
+     */
+    public function put()
+    {
+        return 'Test/put';
+    }
+
+    /**
+     * @DeleteMapping("/delete")
+     */
+    public function delete()
+    {
+        return 'Test/delete';
+    }
 }
-`````
+
+```
