@@ -13,11 +13,6 @@
       "Shayvmo\\WebmanAnnotations\\": "src"
     }
   },
-  "extra": {
-    "branch-alias": {
-      "dev-main": "1.x-dev"
-    }
-  },
   "minimum-stability": "dev",
   "authors": [
     {
