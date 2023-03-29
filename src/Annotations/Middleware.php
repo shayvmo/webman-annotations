@@ -7,6 +7,7 @@ namespace Shayvmo\WebmanAnnotations\Annotations;
 /**
  * @Annotation
  */
+#[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class Middleware
 {
     public array $middlewares;

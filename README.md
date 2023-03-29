@@ -4,6 +4,10 @@
 >
 > 您可以直接在控制器类或类方法定义注解，实现路由定义。
 
+webman框架插件地址：[https://www.workerman.net/plugin/115](https://www.workerman.net/plugin/115)
+
+站在巨人的肩膀可以看到更远，感谢 [https://www.workerman.net/plugin/52](https://www.workerman.net/plugin/52) 的启发。
+
 ## 安装
 
 ```shell
@@ -23,7 +27,7 @@ return [
     ],
     // requestMapping 允许的请求method
     'allow_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
-    // 忽略解析的注解名称
+    // 忽略解析的注解名称，适用于 php7 使用 doctrine/annotations 解析
     'ignored' => [
         "after", "afterClass", "backupGlobals", "backupStaticAttributes", "before", "beforeClass", "codeCoverageIgnore*",
         "covers", "coversDefaultClass", "coversNothing", "dataProvider", "depends", "doesNotPerformAssertions",
@@ -45,6 +49,7 @@ return [
 use Shayvmo\WebmanAnnotations\Annotations\Middleware;
 use App\third\middleware\SignatureCheckA;
 
+// php74
 /**
  * @Middleware(
  *     \App\third\middleware\SignatureCheck::class,
@@ -57,6 +62,12 @@ use App\third\middleware\SignatureCheckA;
  *   \App\third\middleware\SignatureCheck::class,
  * })
  */
+
+// php8注解
+// 单个中间件
+#[Middleware(LimitTrafficMiddleware::class)]
+// 多个
+#[Middleware([LimitTrafficMiddleware::class, \App\third\middleware\SignatureCheck::class])]
 
 ```
 
@@ -76,6 +87,10 @@ use Shayvmo\WebmanAnnotations\Annotations\RestController;
 
 - `@RestController("/a")`
 - `@RestController(prefix="/a")`
+  
+php8注解
+- `#[RestController("/test1")]`
+- `#[RestController(path: "/test2")]`
 
 
 #### 资源路由注解
@@ -90,6 +105,10 @@ use Shayvmo\WebmanAnnotations\Annotations\ResourceMapping;
 
 - `@ResourceMapping(path="/dddd", allow_methods={"index", "show"})`
 - `@ResourceMapping("/dddd", allow_methods={"index", "show"})` 
+
+php8注解
+- `#[ResourceMapping("/test", allow_methods: ["index", "show"])]`
+- `#[ResourceMapping(path: "/test2", allow_methods: ["index", "show"])]`
 
 <span style="color: red">注：如果定义了资源路由，会自动忽略类同名方法的方法注解。</span>
 
@@ -120,6 +139,15 @@ use Shayvmo\WebmanAnnotations\Annotations\ResourceMapping;
 - `@PostMapping(path="/post")`
 - `@PutMapping(path="/put")`
 - `@DeleteMapping(path="/delete")`
+
+php8注解
+- `#[RequestMapping("/test1", methods: "get")]`
+- `#[RequestMapping(["/test1","/test11"], methods: ["get", "post"])]`
+- `#[GetMapping(["/get", "/get1"])]`
+- `#[PostMapping(path: "/post")]`
+- `#[PutMapping(path: "/put")]`
+- `#[DeleteMapping("/delete")]`
+
 
 ```
 // 方法注解
@@ -217,3 +245,13 @@ class ATest
 }
 
 ```
+
+五、更新日志
+
+- v1.0.1
+
+  2023-03-27，修复发现的bug
+
+- v1.0.0
+
+  2023-03-27，发布1.0.0版本

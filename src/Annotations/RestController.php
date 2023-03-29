@@ -7,6 +7,7 @@ namespace Shayvmo\WebmanAnnotations\Annotations;
 /**
  * @Annotation
  */
+#[\Attribute(\Attribute::TARGET_CLASS)]
 class RestController
 {
     public string $prefix;

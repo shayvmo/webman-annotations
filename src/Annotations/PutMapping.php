@@ -7,6 +7,7 @@ namespace Shayvmo\WebmanAnnotations\Annotations;
 /**
  * @Annotation
  */
+#[\Attribute(\Attribute::TARGET_METHOD)]
 class PutMapping extends Mapping
 {
     public function __construct(...$value)
