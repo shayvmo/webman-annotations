@@ -15,10 +15,10 @@ class ResourceMapping extends Mapping
     public function __construct(...$value)
     {
         $this->path = $value[0]['path'] ?? $value[0]['value'] ?? '';
-        $tempMethods = trim($value[0]['methods'] ?? '');
+        $tempMethods = $value[0]['allow_methods'] ?? '';
         if ($tempMethods) {
             if (is_string($tempMethods)) {
-                $tempMethods = explode(',', strtolower($tempMethods));
+                $tempMethods = explode(',', strtolower(trim($tempMethods)));
                 array_walk($tempMethods, function (&$item) {
                     $item = trim($item);
                 });
