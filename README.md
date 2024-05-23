@@ -275,11 +275,11 @@ class ATest
 
 - v1.2.0
 
-  2024-05-23，增加中间件忽略注解
+  2024-05-23，增加中间件忽略注解`MiddlewareIgnore`
 
 - v1.1.1
 
-  2023-04-11，修复发现的RequestMapping解析allow_methods问题
+  2023-04-11，修复发现的`RequestMapping`解析`allow_methods`问题
 
 - v1.1.0
 
