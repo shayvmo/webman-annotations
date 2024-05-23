@@ -273,6 +273,10 @@ class ATest
 
 五、更新日志
 
+- v1.2.0
+
+  2024-05-23，增加中间件忽略注解
+
 - v1.1.1
 
   2023-04-11，修复发现的RequestMapping解析allow_methods问题
