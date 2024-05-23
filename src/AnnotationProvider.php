@@ -10,6 +10,7 @@ use ReflectionMethod;
 use Shayvmo\WebmanAnnotations\Annotations\DeleteMapping;
 use Shayvmo\WebmanAnnotations\Annotations\GetMapping;
 use Shayvmo\WebmanAnnotations\Annotations\Middleware;
+use Shayvmo\WebmanAnnotations\Annotations\MiddlewareIgnore;
 use Shayvmo\WebmanAnnotations\Annotations\PostMapping;
 use Shayvmo\WebmanAnnotations\Annotations\PutMapping;
 use Shayvmo\WebmanAnnotations\Annotations\RequestMapping;
@@ -130,6 +131,7 @@ class AnnotationProvider
             }
             /** @var Middleware $methodMiddlewareAnnotations */
             $methodMiddlewareAnnotations = $reader->getMethodAnnotation($item, Middleware::class);
+            $methodIgnoreMiddlewareAnnotations = $reader->getMethodAnnotation($item, MiddlewareIgnore::class);
 
             $methodMappingAnnotations = [
                 $reader->getMethodAnnotation($item, RequestMapping::class),
@@ -140,6 +142,7 @@ class AnnotationProvider
             ];
 
             $methodMiddlewares = $methodMiddlewareAnnotations ? $methodMiddlewareAnnotations->getMiddlewares() : [];
+            $methodIgnoreMiddlewares = $methodIgnoreMiddlewareAnnotations ? $methodIgnoreMiddlewareAnnotations->getMiddlewares() : [];
             /** @var \Shayvmo\WebmanAnnotations\Annotations\Mapping $mappingAnnotation */
             foreach ($methodMappingAnnotations as $mappingAnnotation) {
                 if ($mappingAnnotation) {
@@ -148,12 +151,18 @@ class AnnotationProvider
                         $mappingPaths = [$mappingPaths];
                     }
                     foreach ($mappingPaths as $mappingPath) {
+                        if ($methodIgnoreMiddlewareAnnotations && empty($methodIgnoreMiddlewares)) {
+                            $allMiddlewares = [];
+                        } else {
+                            $allMiddlewares = array_diff(array_merge($classMiddlewares, $methodMiddlewares), $methodIgnoreMiddlewares);
+                        }
+
                         $tempClassAnnotations[] = [
                             'method' => $mappingAnnotation->getMethods(),
                             'path' => $classPrefix . $mappingPath,
                             'className' => $className,
                             'action' => $action,
-                            'middleware' => array_merge($classMiddlewares, $methodMiddlewares),
+                            'middleware' => $allMiddlewares,
                         ];
                     }
                 }
@@ -221,6 +230,26 @@ class AnnotationProvider
             if ($resourceMatch && self::checkResourceAction($action, $classAllowMethods)) {
                 continue;
             }
+
+            $methodIgnoreMiddlewareAllSign = false;
+            $methodIgnoreMiddlewares = [];
+            $methodIgnoreMiddlewareAnnotations = $item->getAttributes(MiddlewareIgnore::class);
+            if ($methodIgnoreMiddlewareAnnotations) {
+                /** @var \ReflectionAttribute $methodMiddlewareAnnotation */
+                foreach ($methodIgnoreMiddlewareAnnotations as $methodIgnoreMiddlewareAnnotation) {
+                    $args = $methodIgnoreMiddlewareAnnotation->getArguments();
+                    if (!empty($args)) {
+                        if (is_string($args[0])) {
+                            $methodIgnoreMiddlewares[] = [$args[0]];
+                        } elseif (is_array($args[0])) {
+                            $methodIgnoreMiddlewares[] = $args[0];
+                        }
+                    }
+                }
+                $methodIgnoreMiddlewares = array_merge(...$methodIgnoreMiddlewares);
+                !$methodIgnoreMiddlewares && $methodIgnoreMiddlewareAllSign = true;
+            }
+
             $methodMiddlewares = [];
             $methodMiddlewareAnnotations = $item->getAttributes(Middleware::class);
             if ($methodMiddlewareAnnotations) {
@@ -264,12 +293,22 @@ class AnnotationProvider
                             $method = $item->newInstance()->getMethods();
                         }
                         foreach ($mappingPaths as $mappingPath) {
+                            $allMiddlewares = array_merge($classMiddlewares, $methodMiddlewares);
+
+                            if (!empty($methodIgnoreMiddlewares)) {
+                                $allMiddlewares = array_diff($allMiddlewares, $methodIgnoreMiddlewares);
+                            }
+
+                            if ($methodIgnoreMiddlewareAllSign) {
+                                $allMiddlewares = [];
+                            }
+
                             $tempClassAnnotations[] = [
                                 'method' => $method,
                                 'path' => $classPrefix . $mappingPath,
                                 'className' => $className,
                                 'action' => $action,
-                                'middleware' => array_merge($classMiddlewares, $methodMiddlewares),
+                                'middleware' => $allMiddlewares,
                             ];
                         }
                     }
