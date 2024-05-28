@@ -4,8 +4,7 @@
   "license": "MIT",
   "description": "Webman plugin shayvmo/webman-annotations",
   "require": {
-    "php": ">=7.4",
-    "doctrine/annotations": "^1.13",
+    "php": ">=8.0",
     "workerman/webman-framework": "^1.3"
   },
   "autoload": {

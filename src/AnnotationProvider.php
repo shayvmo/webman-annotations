@@ -4,7 +4,6 @@ declare (strict_types=1);
 
 namespace Shayvmo\WebmanAnnotations;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use ReflectionClass;
 use ReflectionMethod;
 use Shayvmo\WebmanAnnotations\Annotations\DeleteMapping;
@@ -23,7 +22,13 @@ class AnnotationProvider
     public static function start()
     {
         $annotationClasses = self::scanFile();
-        $formatData = self::formatData($annotationClasses);
+
+        $tempClassAnnotations = [];
+        foreach ($annotationClasses as $annotationClass) {
+            $tempClassAnnotations[] = self::formatData($annotationClass);
+        }
+        $formatData = array_merge(...$tempClassAnnotations);
+
         foreach ($formatData as $item) {
             $method = $item['method'];
             if (is_array($method)) {
@@ -69,110 +74,7 @@ class AnnotationProvider
 
     }
 
-    private static function formatData($annotationClasses)
-    {
-        config("plugin.shayvmo.webman-annotations.annotation.ignored");
-        foreach (config("plugin.shayvmo.webman-annotations.annotation.ignored") as $v) {
-            AnnotationReader::addGlobalIgnoredName($v);
-        }
-        $tempClassAnnotations = [];
-        $annotationReader = new AnnotationReader();
-        foreach ($annotationClasses as $annotationClass) {
-            if (PHP_MAJOR_VERSION >= 8) {
-                $tempClassAnnotations[] = self::format8($annotationClass);
-            }
-            $tempClassAnnotations[] = self::format7(clone $annotationReader, $annotationClass);
-        }
-        return array_merge(...$tempClassAnnotations);
-    }
-
-    private static function format7($reader, $annotationClass)
-    {
-        $class = new ReflectionClass($annotationClass);
-        $resourceMatch = false;
-        $classAllowMethods = [];
-        $className = $class->name;
-        $tempClassAnnotations = [];
-        $classPrefix = '';
-        /** @var RestController $classControllerAnnotation */
-        $classControllerAnnotation = $reader->getClassAnnotation($class, RestController::class);
-        if ($classControllerAnnotation) {
-            $classPrefix = $classControllerAnnotation->getPrefix();
-        }
-
-        $classMiddlewares = [];
-        /** @var Middleware $classMiddlewareAnnotation */
-        $classMiddlewareAnnotation = $reader->getClassAnnotation($class, Middleware::class);
-        if ($classMiddlewareAnnotation) {
-            $classMiddlewares = $classMiddlewareAnnotation->getMiddlewares();
-        }
-
-        /** @var ResourceMapping $classResourceAnnotation */
-        $classResourceAnnotation = $reader->getClassAnnotation($class, ResourceMapping::class);
-        if ($classResourceAnnotation) {
-            $classPath = $classPrefix . $classResourceAnnotation->getPath();
-            $classMethods = $classResourceAnnotation->getMethods();
-            $classAllowMethods = $classResourceAnnotation->getAllowMethods();
-            $tempClassAnnotations[] = [
-                'method' => $classMethods,
-                'className' => $className,
-                'path' => $classPath,
-                'allowMethods' => $classAllowMethods,
-                'middleware' => $classMiddlewares,
-            ];
-            $resourceMatch = true;
-        }
-
-        $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
-        foreach ($methods as $item) {
-            $action = $item->name;
-            if ($resourceMatch && self::checkResourceAction($action, $classAllowMethods)) {
-                continue;
-            }
-            /** @var Middleware $methodMiddlewareAnnotations */
-            $methodMiddlewareAnnotations = $reader->getMethodAnnotation($item, Middleware::class);
-            $methodIgnoreMiddlewareAnnotations = $reader->getMethodAnnotation($item, MiddlewareIgnore::class);
-
-            $methodMappingAnnotations = [
-                $reader->getMethodAnnotation($item, RequestMapping::class),
-                $reader->getMethodAnnotation($item, GetMapping::class),
-                $reader->getMethodAnnotation($item, PostMapping::class),
-                $reader->getMethodAnnotation($item, PutMapping::class),
-                $reader->getMethodAnnotation($item, DeleteMapping::class),
-            ];
-
-            $methodMiddlewares = $methodMiddlewareAnnotations ? $methodMiddlewareAnnotations->getMiddlewares() : [];
-            $methodIgnoreMiddlewares = $methodIgnoreMiddlewareAnnotations ? $methodIgnoreMiddlewareAnnotations->getMiddlewares() : [];
-            /** @var \Shayvmo\WebmanAnnotations\Annotations\Mapping $mappingAnnotation */
-            foreach ($methodMappingAnnotations as $mappingAnnotation) {
-                if ($mappingAnnotation) {
-                    $mappingPaths = $mappingAnnotation->getPath();
-                    if (is_string($mappingPaths)) {
-                        $mappingPaths = [$mappingPaths];
-                    }
-                    foreach ($mappingPaths as $mappingPath) {
-                        if ($methodIgnoreMiddlewareAnnotations && empty($methodIgnoreMiddlewares)) {
-                            $allMiddlewares = [];
-                        } else {
-                            $allMiddlewares = array_diff(array_merge($classMiddlewares, $methodMiddlewares), $methodIgnoreMiddlewares);
-                        }
-
-                        $tempClassAnnotations[] = [
-                            'method' => $mappingAnnotation->getMethods(),
-                            'path' => $classPrefix . $mappingPath,
-                            'className' => $className,
-                            'action' => $action,
-                            'middleware' => $allMiddlewares,
-                        ];
-                    }
-                }
-            }
-        }
-
-        return $tempClassAnnotations;
-    }
-
-    private static function format8($annotationClass)
+    private static function formatData($annotationClass)
     {
         $class = new ReflectionClass($annotationClass);
         $resourceMatch = false;
